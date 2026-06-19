@@ -1,0 +1,37 @@
+Le système surveille une rue ou un passage à l'aide d'une caméra IP.
+
+Lorsqu'un véhicule passe:
+	-Il est détécté
+	-Il est identifié
+	-Une photo est enregistrée de manière temporaire(24/72h)
+	-Une plaque est lue
+	-Une vitesse est calculée
+
+Toutes les informations sont enregistrées dans une base PostgreSQL
+
+Un administrateur peut consulter les données depuis une interface.
+
+Acteurs du projet et cas d'utlisations
+	-Administrateur
+		-consulter statistiques
+		-consulter photos
+		-recherche de plaques
+		-gérer les caméras
+
+	-Caméra IP
+	 -fournir un flux video
+
+	-Système
+		-Détecter véhicule
+		-Lire la plaque
+		-Calculer la vitesse
+		-Sauvergarder détection
+
+
+Concepts métier:
+	-Camera
+	-Vehicule
+	-Detection
+	-Photo
+	-Plate
+	-Stats
