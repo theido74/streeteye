@@ -12,11 +12,11 @@ class DbConnexionTest(unittest.TestCase):
         connect_mock.return_value = fake_connection
 
         db = DbConnexion(
-            dbname="streeteye",
-            user="streeteyeuser",
-            password="secret",
-            host="localhost",
-            port=5432,
+            dbname="***",
+            user="***",
+            password="***",
+            host="***",
+            port=***,
         )
 
         connect_mock.assert_called_once_with(
