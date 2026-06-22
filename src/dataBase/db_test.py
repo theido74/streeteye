@@ -1,15 +1,18 @@
+import os
+
+import cv2
+from dotenv import load_dotenv
+from ultralytics import YOLO
+
 from src.dataBase.db_connexion import DbConnexion
 from src.dataBase.db_manager import DBManager
-from ultralytics import YOLO
-import cv2
-import os
-from dotenv import load_dotenv
+
 load_dotenv()
 
 def main():
     """Petit script manuel pour valider la DAO."""
     db = DbConnexion()
-    db_manager = DBManager(db)
+    db_manager = DBManager()
 
     try:
         print("Connexion DB réussie")

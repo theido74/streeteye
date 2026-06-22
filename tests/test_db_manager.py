@@ -69,6 +69,42 @@ class DBManagerTest(unittest.TestCase):
         connection.rollback.assert_called_once()
         connection.commit.assert_not_called()
 
+    def test_get_photos_older_than_returns_rows(self):
+        cursor = Mock()
+        cursor.fetchall.return_value = [(1, "photo/a.jpg"), (2, "photo/b.jpg")]
+        connection = Mock()
+        connection.cursor.return_value = cursor
+        db = Mock()
+        db.getConnection.return_value = connection
+
+        manager = DBManager(db)
+        rows = manager.get_photos_older_than(24)
+
+        self.assertEqual(rows, [(1, "photo/a.jpg"), (2, "photo/b.jpg")])
+        cursor.execute.assert_called_once()
+
+    def test_delete_photo_deletes_detection_then_photo_and_commits(self):
+        cursor = Mock()
+        connection = Mock()
+        connection.cursor.return_value = cursor
+        db = Mock()
+        db.getConnection.return_value = connection
+
+        manager = DBManager(db)
+        manager.delete_photo(7)
+
+        self.assertEqual(cursor.execute.call_count, 2)
+        cursor.execute.assert_any_call(
+            "DELETE FROM detection WHERE photo_id = %s",
+            (7,),
+        )
+        cursor.execute.assert_any_call(
+            "DELETE FROM photo WHERE id = %s",
+            (7,),
+        )
+        connection.commit.assert_called_once()
+        connection.rollback.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

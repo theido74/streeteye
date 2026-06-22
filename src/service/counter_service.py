@@ -7,6 +7,10 @@ class CounterService:
             "voiture": 0,
             "2 roues": 0,
             "camion": 0,
+            "cheval": 0,
+            "pieton": 0,
+            "chien": 0,
+            "chat": 0,
         }
 
     def estNouveau(self, track_id):

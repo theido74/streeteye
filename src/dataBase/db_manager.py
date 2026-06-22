@@ -1,11 +1,9 @@
 from src.dataBase.db_connexion import DbConnexion
 
-from dataBase.db_connexion import DbConnexion
-
 class DBManager:
-    def __init__(self):
-        self.db = DbConnexion()
-        self.conn = self.db.conn
+    def __init__(self, db=None):
+        self.db = db or DbConnexion()
+        self.conn = self.db.getConnection() if hasattr(self.db, "getConnection") else self.db.conn
         self.cursor = self.conn.cursor()
 
     def save_photo(self, chemin: str) -> int:
@@ -22,6 +20,32 @@ class DBManager:
             self.conn.commit()
             return photo_id
 
+        except Exception:
+            self.conn.rollback()
+            raise
+
+    def get_photos_older_than(self, hours: int = 24):
+        self.cursor.execute(
+            """
+            SELECT id, cheminStock
+            FROM photo
+            WHERE dateCapture < NOW() - (%s * INTERVAL '1 hour')
+            """,
+            (hours,),
+        )
+        return self.cursor.fetchall()
+
+    def delete_photo(self, photo_id: int):
+        try:
+            self.cursor.execute(
+                "DELETE FROM detection WHERE photo_id = %s",
+                (photo_id,),
+            )
+            self.cursor.execute(
+                "DELETE FROM photo WHERE id = %s",
+                (photo_id,),
+            )
+            self.conn.commit()
         except Exception:
             self.conn.rollback()
             raise
@@ -71,5 +95,3 @@ class DBManager:
     def close(self):
         self.cursor.close()
         self.conn.close()
-
-

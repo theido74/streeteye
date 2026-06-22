@@ -1,18 +1,24 @@
-import cv2
 import os
+
+import cv2
 from dotenv import load_dotenv
 
-from src.service.detection_service import DetectionService
 from src.service.counter_service import CounterService
+from src.service.detection_service import DetectionService
+from src.service.photo_service import PhotoService
+from src.service.vitesse_service import VitesseService
 
+ps = PhotoService()
+vs = VitesseService()
 cs = CounterService()
 dc = DetectionService()
-
+CAMERA_ID = 1
 load_dotenv()
 
 url = os.getenv("RTSP_URL")
 cap = cv2.VideoCapture(url)
-all_id = set()
+all_id = []
+vitesse = 0
 
 
 while True:
@@ -20,17 +26,27 @@ while True:
     if not ret:
         continue
 
+    hauteur, largeur = frame.shape[:2]
+    ligne_milieu = largeur // 2
+    ligne_vitesse_1 = max(ligne_milieu - 80, 0)
+    ligne_vitesse_2 = min(ligne_milieu + 80, largeur - 1)
+
     vehicules = dc.detection_vehicule(frame)
     for vehicule in vehicules:
         x1, y1, x2, y2 = vehicule["bbox"]
         vehicule_id = vehicule["id"]
         label = f"ID: {vehicule_id}"
         vehicule_type = vehicule["type"].lower()
+        centre = vehicule["centre"]
+        vitesse = vs.calculerVitesse(None, vehicule_id, centre)
+        # Photo au milieu de l'ecran.
+        chemin = None
+
 
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
         cv2.putText(
             frame,
-            f"{label} - {vehicule['type']}",
+            f"{label} - {vehicule['type']} - {vitesse}",
             (x1, y1 - 30),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.6,
@@ -38,18 +54,35 @@ while True:
             2,
         )
 
+    # Lignes de repere pour voir quand la photo et la vitesse se declenchent.
+    cv2.line(frame, (ligne_milieu, 0), (ligne_milieu, hauteur), (255, 255, 0), 2)
+    cv2.line(frame, (ligne_vitesse_1, 0), (ligne_vitesse_1, hauteur), (0, 255, 255), 1)
+    cv2.line(frame, (ligne_vitesse_2, 0), (ligne_vitesse_2, hauteur), (0, 255, 255), 1)
+
     vehicules_filtrees = [
-        v for v in vehicules if v["type"] in {"Voiture", "2 roues", "camion","cycliste"} and v["txConfiance"] > 0.65
+        v for v in vehicules if
+        v["type"] in {"voiture", "2 roues", "camion", "cycliste", "cheval", "chien", "chat", "pieton"} and v[
+            "txConfiance"] > 0.65
     ]
     if vehicules_filtrees:
-        print(vehicules_filtrees)
-        cs.compte(vehicule_id,vehicule_type)
-
-
-
+        chemin = None
         for vehicule in vehicules_filtrees:
-            x1, y1, x2, y2 = vehicule["bbox"]
-            all_id.add(vehicule["id"])
+            if vehicule["id"] not in all_id and vehicule["txConfiance"] > 0.80:
+                chemin = ps.sauvegarde(frame)
+                print(chemin)
+                dc.create_detection(CAMERA_ID, vehicule["id"], chemin, None, float(vehicule['txConfiance']),
+                                    vitesse)
+                print("DETECTION CREE")
+                print(vehicule)
+                print(vitesse)
+                all_id.append(vehicule["id"])
+                cs.compte(vehicule["id"], vehicule["type"])
+                cs.afficherStats()
+            else:
+                continue
+
+
+
 
     cv2.imshow("frame", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):

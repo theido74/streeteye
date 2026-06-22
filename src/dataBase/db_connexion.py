@@ -1,6 +1,16 @@
 import os
+
 from dotenv import load_dotenv
-import psycopg2
+
+try:
+    import psycopg2
+except ModuleNotFoundError:  # pragma: no cover - fallback for test environments without psycopg2
+    class _MissingPsycopg2:
+        def connect(self, *args, **kwargs):
+            raise ModuleNotFoundError("psycopg2 is required to open a database connection")
+
+
+    psycopg2 = _MissingPsycopg2()
 
 
 load_dotenv()
