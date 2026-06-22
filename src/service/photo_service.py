@@ -1,12 +1,9 @@
 from datetime import datetime
 from pathlib import Path
 
-from src.dataBase.db_manager import DBManager
+import cv2
 
-try:
-    import cv2
-except ModuleNotFoundError:  # pragma: no cover - fallback for test environments without opencv
-    cv2 = None
+from src.dataBase.db_manager import DBManager
 
 
 class PhotoService:
@@ -20,7 +17,6 @@ class PhotoService:
             raise ModuleNotFoundError("opencv-python is required to save photos")
 
         self.photo_dir.mkdir(exist_ok=True)
-
         chemin = self.photo_dir / f"{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
         succes = cv2.imwrite(str(chemin), frame)
         if not succes:
@@ -29,7 +25,6 @@ class PhotoService:
         return self.db.save_photo(str(chemin))
 
     def validationCapture(self, id_liste, track_id, centre_x, ligne, tolerance=50):
-        # centre_x peut etre un tuple (x, y). On garde seulement x.
         if isinstance(centre_x, (tuple, list)):
             centre_x = centre_x[0]
 

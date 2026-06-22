@@ -93,13 +93,13 @@ class DBManagerTest(unittest.TestCase):
         manager = DBManager(db)
         manager.delete_photo(7)
 
-        self.assertEqual(cursor.execute.call_count, 2)
-        cursor.execute.assert_any_call(
-            "DELETE FROM detection WHERE photo_id = %s",
-            (7,),
-        )
-        cursor.execute.assert_any_call(
-            "DELETE FROM photo WHERE id = %s",
+        cursor.execute.assert_called_once_with(
+            """
+                UPDATE photo
+                SET deletedAt = NOW()
+                WHERE id = %s
+                  AND deletedAt IS NULL
+                """,
             (7,),
         )
         connection.commit.assert_called_once()

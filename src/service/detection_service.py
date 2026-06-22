@@ -36,7 +36,7 @@ class DetectionService:
                         "bbox": (x1, y1, x2, y2),
                         "centre": ts.centreCoordonnees(x1, y1, x2, y2),
                     })
-                    vs.createVehicule(vehicule_type, track_id)
+
         return vehicule
 
     def create_detection(

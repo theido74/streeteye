@@ -6,8 +6,10 @@ from dotenv import load_dotenv
 from src.service.counter_service import CounterService
 from src.service.detection_service import DetectionService
 from src.service.photo_service import PhotoService
+from src.service.vehicule_service import Vehicule_service
 from src.service.vitesse_service import VitesseService
 
+vhs = Vehicule_service()
 ps = PhotoService()
 vs = VitesseService()
 cs = CounterService()
@@ -39,8 +41,6 @@ while True:
         vehicule_type = vehicule["type"].lower()
         centre = vehicule["centre"]
         vitesse = vs.calculerVitesse(None, vehicule_id, centre)
-        # Photo au milieu de l'ecran.
-        chemin = None
 
 
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
@@ -69,20 +69,19 @@ while True:
         for vehicule in vehicules_filtrees:
             if vehicule["id"] not in all_id and vehicule["txConfiance"] > 0.80:
                 chemin = ps.sauvegarde(frame)
-                print(chemin)
-                dc.create_detection(CAMERA_ID, vehicule["id"], chemin, None, float(vehicule['txConfiance']),
-                                    vitesse)
                 print("DETECTION CREE")
-                print(vehicule)
-                print(vitesse)
+                print("VEHICULE", vehicule)
+                print("VITESSE", vitesse)
+                v_id = vhs.createVehicule(vehicule["type"])
+                print("ID DB = ", v_id)
+                dc.create_detection(CAMERA_ID, v_id, chemin, None, float(vehicule['txConfiance']),
+                                    vitesse)
                 all_id.append(vehicule["id"])
                 cs.compte(vehicule["id"], vehicule["type"])
                 cs.afficherStats()
+                vhs.updateFlash(vitesse, v_id)
             else:
                 continue
-
-
-
 
     cv2.imshow("frame", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):

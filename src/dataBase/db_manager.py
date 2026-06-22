@@ -30,6 +30,7 @@ class DBManager:
             SELECT id, cheminStock
             FROM photo
             WHERE dateCapture < NOW() - (%s * INTERVAL '1 hour')
+              AND deletedAt IS NULL
             """,
             (hours,),
         )
@@ -38,11 +39,12 @@ class DBManager:
     def delete_photo(self, photo_id: int):
         try:
             self.cursor.execute(
-                "DELETE FROM detection WHERE photo_id = %s",
-                (photo_id,),
-            )
-            self.cursor.execute(
-                "DELETE FROM photo WHERE id = %s",
+                """
+                UPDATE photo
+                SET deletedAt = NOW()
+                WHERE id = %s
+                  AND deletedAt IS NULL
+                """,
                 (photo_id,),
             )
             self.conn.commit()
@@ -72,17 +74,16 @@ class DBManager:
             self.conn.rollback()
             raise
 
-
     def save_vehicule(self, type) -> int:
-        plaque = "GE TEST"
+        flash = False
         try:
             self.cursor.execute(
                 """
-                INSERT INTO vehicule(type,plaque)
+                INSERT INTO vehicule(type,flash)
                 VALUES(%s,%s)
                 RETURNING id
                 """,
-                (type,plaque)
+                (type, flash)
             )
             vehicule_id = self.cursor.fetchone()[0]
             self.conn.commit()
@@ -91,6 +92,29 @@ class DBManager:
         except Exception:
             self.conn.rollback()
             raise
+
+    def update_flash(self, vitesse, id_vehicule):
+        if vitesse > 29:
+            try:
+                self.cursor.execute(
+                    """
+                    UPDATE vehicule
+                    SET flash = True
+                    WHERE id = %s
+                    """,
+                    (id_vehicule,)  # note la virgule pour un tuple
+                )
+                # On peut vérifier si une ligne a été mise à jour :
+                if self.cursor.rowcount == 0:
+                    print("Aucun véhicule trouvé avec cet ID")
+                self.conn.commit()
+                print("EXCES DE VITESSE")
+                return id_vehicule  # on retourne l'ID existant
+            except Exception:
+                self.conn.rollback()
+                raise
+        else:
+            return id_vehicule  # ou rien, selon le besoin
 
     def close(self):
         self.cursor.close()
