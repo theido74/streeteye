@@ -94,7 +94,7 @@ class DBManager:
             raise
 
     def update_flash(self, vitesse, id_vehicule):
-        if vitesse > 29:
+        if vitesse > 20:
             try:
                 self.cursor.execute(
                     """

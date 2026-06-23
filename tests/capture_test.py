@@ -6,9 +6,11 @@ from dotenv import load_dotenv
 from src.service.counter_service import CounterService
 from src.service.detection_service import DetectionService
 from src.service.photo_service import PhotoService
+from src.service.telegram_service import AlerteTelegram
 from src.service.vehicule_service import Vehicule_service
 from src.service.vitesse_service import VitesseService
 
+at = AlerteTelegram()
 vhs = Vehicule_service()
 ps = PhotoService()
 vs = VitesseService()
@@ -80,12 +82,11 @@ while True:
                 cs.compte(vehicule["id"], vehicule["type"])
                 cs.afficherStats()
                 vhs.updateFlash(vitesse, v_id)
+                if vitesse > 20:
+                    at.alerteTelegram(chemin, v_id)
             else:
                 continue
 
-    cv2.imshow("frame", frame)
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
 
 cap.release()
 cv2.destroyAllWindows()
