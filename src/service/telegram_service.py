@@ -2,6 +2,10 @@ import os
 
 import requests
 from dotenv import load_dotenv
+from src.service.photo_service import PhotoService
+ps = PhotoService()
+
+path = ps.photo_dir
 
 load_dotenv()
 

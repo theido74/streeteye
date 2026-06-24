@@ -6,7 +6,7 @@ class DBManager:
         self.conn = self.db.getConnection() if hasattr(self.db, "getConnection") else self.db.conn
         self.cursor = self.conn.cursor()
 
-    def save_photo(self, chemin: str) -> int:
+    def save_photo(self, chemin: str):
         try:
             self.cursor.execute(
                 """
@@ -18,7 +18,7 @@ class DBManager:
             )
             photo_id = self.cursor.fetchone()[0]
             self.conn.commit()
-            return photo_id
+            return chemin,photo_id
 
         except Exception:
             self.conn.rollback()

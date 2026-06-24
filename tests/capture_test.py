@@ -70,23 +70,25 @@ while True:
         chemin = None
         for vehicule in vehicules_filtrees:
             if vehicule["id"] not in all_id and vehicule["txConfiance"] > 0.80:
-                chemin = ps.sauvegarde(frame)
+                chemin,photo_id = ps.sauvegarde(frame)
                 print("DETECTION CREE")
                 print("VEHICULE", vehicule)
                 print("VITESSE", vitesse)
                 v_id = vhs.createVehicule(vehicule["type"])
                 print("ID DB = ", v_id)
-                dc.create_detection(CAMERA_ID, v_id, chemin, None, float(vehicule['txConfiance']),
+                dc.create_detection(CAMERA_ID, v_id, photo_id,None, float(vehicule['txConfiance']),
                                     vitesse)
                 all_id.append(vehicule["id"])
                 cs.compte(vehicule["id"], vehicule["type"])
                 cs.afficherStats()
                 vhs.updateFlash(vitesse, v_id)
-                if vitesse > 20:
+                if vitesse > 28:
                     at.alerteTelegram(chemin, v_id)
             else:
                 continue
 
-
+   #cv2.imshow("frame", frame)
+   #if cv2.waitKey(1) & 0xFF == ord("q"):
+        #break
 cap.release()
 cv2.destroyAllWindows()

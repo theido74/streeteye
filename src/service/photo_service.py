@@ -21,7 +21,7 @@ class PhotoService:
         succes = cv2.imwrite(str(chemin), frame)
         if not succes:
             raise RuntimeError(f"Echec de l'ecriture de l'image: {chemin}")
-        print(chemin)
+
         return self.db.save_photo(str(chemin))
 
     def validationCapture(self, id_liste, track_id, centre_x, ligne, tolerance=50):

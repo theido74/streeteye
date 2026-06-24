@@ -15,7 +15,8 @@ if detecteur:
 image = cv2.imread("/home/leprechaun/Bureau/StreetEye/photo/test3.jpg")
 if image is not None:
     print("image")
-    id_image = ps.sauvegarde(image)
+    chemin,id_image = ps.sauvegarde(image)
+    print("CHEMIN" , chemin)
 vehicule = detecteur.detection_vehicule(image)
 print(vehicule)
 if vehicule:

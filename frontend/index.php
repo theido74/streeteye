@@ -104,10 +104,11 @@ $type = ["voiture", "2 roues", "camion", "cycliste", "cheval", "chien", "chat", 
                       $chemin = getCheminPhoto($id);
                       ?>
                   <div class="alert-item">
-                      <span class="time">Date <?= htmlspecialchars(formatDateUtcPlus2($alerte['dateheure'])) ?></span>
+                      <span class="time">Date <?= htmlspecialchars($alerte['dateheure']) ?></span>
                       
                       <span class="msg">Vitesse <?= htmlspecialchars($alerte['vitesse']) ?></span>
-                      <span class="severity high" onclick="ouvrirPhoto(<?= htmlspecialchars(json_encode("/tests/".$chemin), ENT_QUOTES) ?>)">
+                      <span class="severity high"
+                            onclick="ouvrirPhoto(<?= htmlspecialchars(json_encode("../" . $chemin), ENT_QUOTES) ?>)">
                 Vehicule ID <?= htmlspecialchars($alerte['vehicule_id']) ?>
 
             </span>
