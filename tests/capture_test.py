@@ -18,6 +18,7 @@ cs = CounterService()
 dc = DetectionService()
 CAMERA_ID = 1
 load_dotenv()
+ps.delete()
 
 url = os.getenv("RTSP_URL")
 cap = cv2.VideoCapture(url)
@@ -32,8 +33,8 @@ while True:
 
     hauteur, largeur = frame.shape[:2]
     ligne_milieu = largeur // 2
-    ligne_vitesse_1 = max(ligne_milieu - 80, 0)
-    ligne_vitesse_2 = min(ligne_milieu + 80, largeur - 1)
+    ligne_vitesse_1 = max(ligne_milieu - 500, 0)
+    ligne_vitesse_2 = min(ligne_milieu + 10, largeur - 1)
 
     vehicules = dc.detection_vehicule(frame)
     for vehicule in vehicules:
@@ -42,7 +43,7 @@ while True:
         label = f"ID: {vehicule_id}"
         vehicule_type = vehicule["type"].lower()
         centre = vehicule["centre"]
-        vitesse = vs.calculerVitesse(None, vehicule_id, centre)
+        vitesse = vs.calculerVitesse(vehicule_id, centre)
 
 
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
@@ -64,12 +65,16 @@ while True:
     vehicules_filtrees = [
         v for v in vehicules if
         v["type"] in {"voiture", "2 roues", "camion", "cycliste", "cheval", "chien", "chat", "pieton"} and v[
-            "txConfiance"] > 0.65
+            "txConfiance"] > 0.80
     ]
     if vehicules_filtrees:
         chemin = None
         for vehicule in vehicules_filtrees:
-            if vehicule["id"] not in all_id and vehicule["txConfiance"] > 0.80:
+            if vehicule["id"] not in all_id and vehicule["txConfiance"] > 0.65 and ps.validationCapture(all_id,
+                                                                                                        vehicule["id"],
+                                                                                                        vehicule[
+                                                                                                            "centre"],
+                                                                                                        ligne_milieu):
                 chemin,photo_id = ps.sauvegarde(frame)
                 print("DETECTION CREE")
                 print("VEHICULE", vehicule)
@@ -87,8 +92,9 @@ while True:
             else:
                 continue
 
-   #cv2.imshow("frame", frame)
-   #if cv2.waitKey(1) & 0xFF == ord("q"):
-        #break
+    cv2.imshow("frame", frame)
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
 cap.release()
 cv2.destroyAllWindows()

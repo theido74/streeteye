@@ -9,7 +9,7 @@ class VitesseService:
         self.position = {}
         self.vitesseHisto = {}
 
-    def calculerVitesse(self, position, track_id, centre):
+    def calculerVitesse(self, track_id, centre):
         heure = datetime.now()
         if track_id not in self.position:
             self.position[track_id] = deque(maxlen=10)

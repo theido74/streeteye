@@ -104,17 +104,16 @@ class DBManager:
                     """,
                     (id_vehicule,)  # note la virgule pour un tuple
                 )
-                # On peut vérifier si une ligne a été mise à jour :
                 if self.cursor.rowcount == 0:
                     print("Aucun véhicule trouvé avec cet ID")
                 self.conn.commit()
                 print("EXCES DE VITESSE")
-                return id_vehicule  # on retourne l'ID existant
+                return id_vehicule
             except Exception:
                 self.conn.rollback()
                 raise
         else:
-            return id_vehicule  # ou rien, selon le besoin
+            return id_vehicule
 
     def close(self):
         self.cursor.close()

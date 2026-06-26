@@ -1,15 +1,17 @@
 import cv2
-from sympy.codegen.ast import none
-import datetime
+
 from src.service.detection_service import DetectionService
 from src.service.photo_service import PhotoService
 from src.service.vehicule_service import Vehicule_service
+
 vs = Vehicule_service()
 ps = PhotoService()
 id_image = None
 id_camera = 1
 
 detecteur = DetectionService()
+ps.delete(24)
+
 if detecteur:
     print("detecteur connected")
 image = cv2.imread("/home/leprechaun/Bureau/StreetEye/photo/test3.jpg")

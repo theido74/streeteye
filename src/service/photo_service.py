@@ -24,9 +24,8 @@ class PhotoService:
 
         return self.db.save_photo(str(chemin))
 
-    def validationCapture(self, id_liste, track_id, centre_x, ligne, tolerance=50):
-        if isinstance(centre_x, (tuple, list)):
-            centre_x = centre_x[0]
+    def validationCapture(self, id_liste, track_id, centre_x, ligne, tolerance=200):
+        centre_x = centre_x[0]
 
         if track_id not in id_liste:
             if abs(centre_x - ligne) < tolerance:
