@@ -91,10 +91,11 @@ while True:
                     at.alerteTelegram(chemin, v_id)
             else:
                 continue
-
+    '''
     cv2.imshow("frame", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
+    '''
 
 cap.release()
 cv2.destroyAllWindows()

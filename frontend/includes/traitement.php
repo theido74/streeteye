@@ -1,18 +1,17 @@
 <?php
 
-require_once ("dataAccess.php");
-function formatDateUtcPlus2($dateheure) {
-    if (empty($dateheure)) {
-        return '';
-    }
+require_once("dataAccess.php");
 
-    try {
-        $date = new DateTime($dateheure);
-        $date->setTimezone(new DateTimeZone('Etc/GMT-2'));
-        return $date->format('d/m/Y H:i:s') . ' UTC+2';
-    } catch (Exception $e) {
-        return $dateheure;
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    if (!empty($_GET["id"])) {
+        $id = $_GET["id"];
+        suppression_globale($id);
+        header('Location: ../alertes.php');
+        echo "Detection supprimée";
+        exit();
     }
 }
+//
+//
 
 ?>

@@ -52,6 +52,7 @@ class DBManager:
             self.conn.rollback()
             raise
 
+
     def save_detection(self, camera_id, vehicule_id, photo_id, heure=None, tx_confiance=None, vitesse=None):
         try:
             self.cursor.execute(

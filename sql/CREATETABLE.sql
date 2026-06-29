@@ -8,16 +8,17 @@ CREATE TABLE camera(
     nom VARCHAR(100) NOT NULL,
     url VARCHAR(250) NOT NULL,
     location VARCHAR(250) NOT NULL,
-    distanceReference NUMERIC(5,2)
+    distanceReference NUMERIC(5, 2),
+    deletedAt         TIMESTAMP NULL
 );
 
 CREATE TABLE vehicule(
     id SERIAL PRIMARY KEY,
     type VARCHAR(30),
-    flash BOOL DEFAULT NULL
+    flash     BOOL DEFAULT NULL,
+    deletedAt TIMESTAMP NULL
 
 );
-
 
 CREATE TABLE photo(
     id SERIAL PRIMARY KEY,
@@ -33,5 +34,13 @@ CREATE TABLE detection(
     dateHeure TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     txDeConfiance NUMERIC(5,2),
     vitesse NUMERIC(5,2),
+    deletedAt TIMESTAMP NULL,
     PRIMARY KEY (camera_id,vehicule_id,photo_id)
+);
+
+CREATE TABLE admin
+(
+    admin_id SERIAL PRIMARY KEY,
+    name     VARCHAR(100),
+    hashmdp  VARCHAR(250)
 );

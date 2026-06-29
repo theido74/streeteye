@@ -37,16 +37,23 @@ function getCountVehiculeFlash()
     return $result['total'];
 }
 
-function getDetectionFlash()
+function get3DetectionFlash()
 {
     $db = dbConnect();
-    $req = $db->prepare("SELECT *  FROM detection  join vehicule on detection.vehicule_id = vehicule.id where vitesse > 20 AND flash = true");
+    $req = $db->prepare("SELECT *
+                                FROM detection
+                                         JOIN vehicule ON detection.vehicule_id = vehicule.id
+                                WHERE vitesse > 20
+                                  AND flash = true
+                                ORDER BY dateheure DESC
+                                LIMIT 3;");
     $req->execute();
     $result = $req->fetchAll(PDO::FETCH_ASSOC);
     return $result;
 }
 
-function getCheminPhoto($id){
+function getCheminPhoto($id)
+{
     $db = dbConnect();
     $req = $db->prepare("SELECT cheminstock  FROM photo join detection on photo.id = detection.photo_id where detection.vehicule_id = :id;");
     $req->execute([
@@ -56,7 +63,8 @@ function getCheminPhoto($id){
     return $result ? $result['cheminstock'] : null;
 }
 
-function getTxConfianceMoyen(){
+function getTxConfianceMoyen()
+{
     $db = dbConnect();
     $req = $db->prepare("SELECT AVG(txdeconfiance) FROM detection ");
     $req->execute();
@@ -64,7 +72,8 @@ function getTxConfianceMoyen(){
     return $result['avg'];
 }
 
-function getNbPassageDerniereHeure() {
+function getNbPassageDerniereHeure()
+{
     $db = dbConnect();
     $req = $db->prepare("SELECT v.*, d.* FROM vehicule v JOIN detection d ON v.id = d.vehicule_id WHERE d.dateheure >= now() - interval '1 hour'");
     $req->execute();
@@ -73,12 +82,44 @@ function getNbPassageDerniereHeure() {
 
 }
 
-function getAllTypes($type) {
+function getAllTypes($type)
+{
     $db = dbConnect();
     $req = $db->prepare("SELECT * FROM vehicule where type = :type;");
     $req->execute([
         'type' => $type,
     ]);
+    $result = $req->fetchAll(PDO::FETCH_ASSOC);
+    return $result;
+}
+
+function suppression_globale($id)
+{
+    try {
+        $db = dbConnect();
+        $req = $db->prepare("SELECT suppression_globale(:id)");
+        $req->execute(['id' => $id]);
+
+        // Si tout s'est bien passé
+        return true;
+
+    } catch (PDOException $e) {
+        // Log l'erreur
+        error_log("Erreur suppression globale : " . $e->getMessage());
+        return false;
+    }
+}
+
+function getDetectionFlash()
+{
+    $db = dbConnect();
+    $req = $db->prepare("SELECT *
+                                FROM detection
+                                         JOIN vehicule ON detection.vehicule_id = vehicule.id
+                                WHERE vitesse > 20
+                                  AND flash = true AND detection.deletedAt IS NULL AND vehicule.deletedAt IS NULL
+                                ORDER BY dateheure DESC;");
+    $req->execute();
     $result = $req->fetchAll(PDO::FETCH_ASSOC);
     return $result;
 }
