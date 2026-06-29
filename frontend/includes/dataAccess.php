@@ -93,22 +93,16 @@ function getAllTypes($type)
     return $result;
 }
 
-function suppression_globale($id)
+function suppression_globale($vehicule_id, $photo_id)
 {
-    try {
-        $db = dbConnect();
-        $req = $db->prepare("SELECT suppression_globale(:id)");
-        $req->execute(['id' => $id]);
 
-        // Si tout s'est bien passé
-        return true;
-
-    } catch (PDOException $e) {
-        // Log l'erreur
-        error_log("Erreur suppression globale : " . $e->getMessage());
-        return false;
-    }
+    $db = dbConnect();
+    $req = $db->prepare("SELECT suppression_globale(:camera_id,:vehicule_id,:photo_id);");
+    $req->execute(['camera_id' => 1,
+        'vehicule_id' => $vehicule_id,
+        'photo_id' => $photo_id,]);
 }
+
 
 function getDetectionFlash()
 {

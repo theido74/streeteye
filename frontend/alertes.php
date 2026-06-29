@@ -38,7 +38,8 @@ require_once('includes/traitement.php');
                     <div class="alert-item">
                         <span class="time">Date <?= htmlspecialchars($alerte['dateheure']) ?></span>
                         <span class="msg">Vitesse <?= htmlspecialchars($alerte['vitesse']) ?></span>
-                        <a href="includes/traitement.php?id=<?= $alerte['id'] ?>" class="alert-item"
+                        <a href="includes/traitement.php?vehicule_id=<?= $alerte['vehicule_id'] ?>&photo_id=<?= $alerte['photo_id'] ?>"
+                           class="alert-item"
                            style="text-decoration: none;color: white">Supprimer</a>
                     </div>
                 <?php

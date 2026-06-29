@@ -1,26 +1,29 @@
 CREATE
 OR REPLACE FUNCTION suppression_globale(
+    p_camera_id INTEGER,
+    p_vehicule_id INTEGER,
     p_photo_id INTEGER
-) RETURNS VOID AS $$ --Dollard quoting, convention pgsql pour les guillements
+) RETURNS VOID AS $$
 BEGIN
 
-UPDATE photo
-SET deletedAt = NOW()
-WHERE id = p_photo_id
-  AND deletedAt IS NULL;
-
 UPDATE detection
-SET deletedAt = NOW()
-WHERE photo_id = p_photo_id
-  AND deletedAt IS NULL;
+SET deletedat = NOW()
+WHERE camera_id = p_camera_id
+  AND vehicule_id = p_vehicule_id
+  AND photo_id = p_photo_id
+  AND deletedat IS NULL;
+
+
+UPDATE photo
+SET deletedat = NOW()
+WHERE id = p_photo_id
+  AND deletedat IS NULL;
+
 
 UPDATE vehicule
-SET deletedAt = NOW()
-WHERE id IN (SELECT DISTINCT vehicule_id
-             FROM detection
-             WHERE photo_id = p_photo_id)
-  AND deletedAt IS NULL;
-
+SET deletedat = NOW()
+WHERE id = p_vehicule_id
+  AND deletedat IS NULL;
 END;
 $$
 LANGUAGE plpgsql;
