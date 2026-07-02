@@ -1,8 +1,12 @@
 <?php
+session_start();
 require_once('includes/dataAccess.php');
 require_once('includes/traitement.php');
 $txConfiance = getTxConfianceMoyen();
 $type = ["voiture", "2 roues", "camion", "cycliste", "cheval", "chien", "chat", "pieton"];
+$connected = false;
+$username = $_SESSION['username'];
+
 
 ?>
 <!DOCTYPE html>
@@ -20,7 +24,13 @@ $type = ["voiture", "2 roues", "camion", "cycliste", "cheval", "chien", "chat", 
     <div class="info-bar">
         <div class="status-led">
             <span class="led"></span>
-            <span>SYSTÈME OPÉRATIONNEL</span>
+            <span>SYSTÈME OPÉRATIONNEL, Bonjour <?= $username ?></span>
+            <a href="includes/traitement.php?logout=1"
+               class="stat-item"
+               style="background-color: red; text-decoration: none; color:white;">
+                ⚡ SE DÉCONNECTER
+            </a>
+
             <span style="margin-left: 20px; opacity:0.6;">|</span>
             <span style="margin-left: 20px;">🔒 CHIFFREMENT AES-256</span>
         </div>

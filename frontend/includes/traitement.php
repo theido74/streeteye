@@ -11,7 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit();
     }
 }
-//
-//
-
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header('Location: ../login.php');
+}
 ?>
