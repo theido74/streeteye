@@ -4,8 +4,10 @@ require_once('includes/dataAccess.php');
 require_once('includes/traitement.php');
 $txConfiance = getTxConfianceMoyen();
 $type = ["voiture", "2 roues", "camion", "cycliste", "cheval", "chien", "chat", "pieton"];
-$connected = false;
 $username = $_SESSION['username'];
+if (empty($username)) {
+    header("Location: login.php");
+}
 
 
 ?>
@@ -201,8 +203,6 @@ $username = $_SESSION['username'];
             if (!chemin) {
                 return;
             }
-
-
             window.open(chemin, 'Photo', 'width=800,height=600,scrollbars=yes');
         }
     </script>
