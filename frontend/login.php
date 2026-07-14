@@ -1,4 +1,5 @@
 <?php
+
 require_once('includes/dataAccess.php');
 session_start();
 
