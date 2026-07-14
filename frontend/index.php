@@ -1,13 +1,14 @@
 <?php
 session_start();
+if (!isset($_SESSION['username'])) {
+    header('Location: login.php');
+    exit;
+}
 require_once('includes/dataAccess.php');
 require_once('includes/traitement.php');
 $txConfiance = getTxConfianceMoyen();
 $type = ["voiture", "2 roues", "camion", "cycliste", "cheval", "chien", "chat", "pieton"];
 $username = $_SESSION['username'];
-if (empty($username)) {
-    header("Location: login.php");
-}
 
 
 ?>
