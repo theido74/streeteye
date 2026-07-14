@@ -10,6 +10,10 @@ from src.service.telegram_service import AlerteTelegram
 from src.service.vehicule_service import Vehicule_service
 from src.service.vitesse_service import VitesseService
 
+SEUIL_VITESSE_FLASH = 20
+SEUIL_VITESSE_TELEGRAM = 28
+SEUIL_CONFIANCE = 0.80
+
 at = AlerteTelegram()
 vhs = Vehicule_service()
 ps = PhotoService()
@@ -24,7 +28,6 @@ url = os.getenv("RTSP_URL")
 cap = cv2.VideoCapture(url)
 all_id = []
 vitesse = 0
-
 
 while True:
     ret, frame = cap.read()
@@ -45,7 +48,6 @@ while True:
         centre = vehicule["centre"]
         vitesse = vs.calculerVitesse(vehicule_id, centre)
 
-
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
         cv2.putText(
             frame,
@@ -65,29 +67,30 @@ while True:
     vehicules_filtrees = [
         v for v in vehicules if
         v["type"] in {"voiture", "2 roues", "camion", "cycliste", "cheval", "chien", "chat", "pieton"} and v[
-            "txConfiance"] > 0.80
+            "txConfiance"] > SEUIL_CONFIANCE
     ]
     if vehicules_filtrees:
         chemin = None
         for vehicule in vehicules_filtrees:
-            if vehicule["id"] not in all_id and vehicule["txConfiance"] > 0.65 and ps.validationCapture(all_id,
-                                                                                                        vehicule["id"],
-                                                                                                        vehicule[
-                                                                                                            "centre"],
-                                                                                                        ligne_milieu):
-                chemin,photo_id = ps.sauvegarde(frame)
+            if vehicule["id"] not in all_id and vehicule["txConfiance"] > SEUIL_CONFIANCE and ps.validationCapture(
+                    all_id,
+                    vehicule["id"],
+                    vehicule[
+                        "centre"],
+                    ligne_milieu):
+                chemin, photo_id = ps.sauvegarde(frame)
                 print("DETECTION CREE")
                 print("VEHICULE", vehicule)
                 print("VITESSE", vitesse)
                 v_id = vhs.createVehicule(vehicule["type"])
                 print("ID DB = ", v_id)
-                dc.create_detection(CAMERA_ID, v_id, photo_id,None, float(vehicule['txConfiance']),
+                dc.create_detection(CAMERA_ID, v_id, photo_id, None, float(vehicule['txConfiance']),
                                     vitesse)
                 all_id.append(vehicule["id"])
                 cs.compte(vehicule["id"], vehicule["type"])
                 cs.afficherStats()
-                vhs.updateFlash(vitesse, v_id)
-                if vitesse > 28:
+                vhs.updateFlash(vitesse, v_id, SEUIL_VITESSE_FLASH)
+                if vitesse > SEUIL_VITESSE_TELEGRAM:
                     at.alerteTelegram(chemin, v_id)
             else:
                 continue

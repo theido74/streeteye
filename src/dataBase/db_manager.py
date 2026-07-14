@@ -1,5 +1,6 @@
 from src.dataBase.db_connexion import DbConnexion
 
+
 class DBManager:
     def __init__(self, db=None):
         self.db = db or DbConnexion()
@@ -18,7 +19,7 @@ class DBManager:
             )
             photo_id = self.cursor.fetchone()[0]
             self.conn.commit()
-            return chemin,photo_id
+            return chemin, photo_id
 
         except Exception:
             self.conn.rollback()
@@ -51,7 +52,6 @@ class DBManager:
         except Exception:
             self.conn.rollback()
             raise
-
 
     def save_detection(self, camera_id, vehicule_id, photo_id, heure=None, tx_confiance=None, vitesse=None):
         try:
@@ -94,8 +94,8 @@ class DBManager:
             self.conn.rollback()
             raise
 
-    def update_flash(self, vitesse, id_vehicule):
-        if vitesse > 20:
+    def update_flash(self, vitesse, id_vehicule, seuil_vitesse):
+        if vitesse > seuil_vitesse:
             try:
                 self.cursor.execute(
                     """
