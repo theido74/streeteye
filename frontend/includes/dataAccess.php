@@ -117,3 +117,20 @@ function getDetectionFlash()
     $result = $req->fetchAll(PDO::FETCH_ASSOC);
     return $result;
 }
+
+function getMdpByUsername($username)
+{
+    try {
+        $db = dbConnect();
+        $req = $db->prepare("SELECT hashmdp FROM admin WHERE name = :username");
+        $req->execute(['username' => $username]);
+        $result = $req->fetch(PDO::FETCH_ASSOC);
+        return $result;
+    } catch (PDOException $e) {
+        error_log("Erreur getMdpByUsername: " . $e->getMessage());
+        return null;
+    }
+}
+
+
+

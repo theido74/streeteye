@@ -7,7 +7,6 @@ $error = '';  //
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // 1. Récupération et validation
     $username = trim(!empty($_POST['username']) ? $_POST['username'] : '');
     $password = !empty($_POST['password']) ? $_POST['password'] : '';
 
