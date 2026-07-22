@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # ============================================================
-# StreetEye - Lanceur automatisé (adapté à ton projet)
+# StreetEye - Lanceur automatisé (avec 3 fichiers SQL)
 # Ce script :
 #   1. Crée la base de données (utilisateur, base, droits)
-#   2. Installe les dépendances Python dans le venv streetEye/
-#   3. Lance le test capture_test.py
+#   2. Exécute 3 fichiers SQL : création, insertion, fonctions
+#   3. Installe les dépendances Python dans le venv streetEye/
+#   4. Lance le test capture_test.py
 # ============================================================
 
 # === 1. VARIABLES ===
@@ -13,10 +14,16 @@ DB_NAME="streeteye"
 DB_USER="streeteyeuser"
 DB_PASS="streetEye"
 PROJECT_DIR="$(pwd)"                  # Racine du projet
-VENV_PYTHON="$PROJECT_DIR/streetEye/bin/python3"   # Python du venv
-TEST_SCRIPT="tests/capture_test.py"   # Script à lancer
+VENV_PYTHON="$PROJECT_DIR/streetEye/bin/python3"
+TEST_SCRIPT="tests/capture_test.py"
 
-# === 2. VÉRIFICATION DES PRÉREQUIS ===
+# === 2. FICHIERS SQL ===
+SQL_DIR="$PROJECT_DIR/sql"
+SQL_TABLES="$SQL_DIR/CREATETABLE.sql"   # Création des tables
+SQL_INSERT="$SQL_DIR/insert.sql"        # Insertion des données
+SQL_FUNCTION="$SQL_DIR/function.sql"    # Création des fonctions
+
+# === 3. VÉRIFICATION DES PRÉREQUIS ===
 echo "🔍 Vérification des prérequis..."
 
 # PostgreSQL
@@ -35,7 +42,7 @@ fi
 
 echo "✅ Prérequis OK"
 
-# === 3. BASE DE DONNÉES ===
+# === 4. BASE DE DONNÉES ===
 echo "🐘 Configuration de PostgreSQL..."
 
 # Créer l'utilisateur s'il n'existe pas
@@ -66,19 +73,34 @@ sudo -u postgres psql -d "$DB_NAME" -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN
 sudo -u postgres psql -d "$DB_NAME" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO $DB_USER;"
 sudo -u postgres psql -d "$DB_NAME" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO $DB_USER;"
 
-# Importer le schéma SQL s'il existe
-SQL_FILE="$PROJECT_DIR/sql/CREATETABLE.sql"
-if [ -f "$SQL_FILE" ]; then
-    echo "📥 Import du schéma SQL..."
-    sudo -u postgres psql -d "$DB_NAME" -f "$SQL_FILE"
-    echo "✅ Schéma importé."
-else
-    echo "⚠️  Fichier SQL non trouvé ($SQL_FILE) – schéma non importé."
-fi
+# === 5. EXÉCUTION DES FICHIERS SQL ===
+echo "📥 Import des fichiers SQL..."
 
-echo "✅ Base de données prête."
+# Fonction pour exécuter un fichier SQL avec vérification
+executer_sql() {
+    local fichier="$1"
+    if [ -f "$fichier" ]; then
+        echo "   Exécution de $(basename "$fichier")..."
+        sudo -u postgres psql -d "$DB_NAME" -f "$fichier"
+        if [ $? -eq 0 ]; then
+            echo "   ✅ $(basename "$fichier") exécuté avec succès."
+        else
+            echo "   ❌ Erreur lors de l'exécution de $(basename "$fichier")."
+            exit 1
+        fi
+    else
+        echo "   ⚠️  Fichier non trouvé : $fichier (ignoré)"
+    fi
+}
 
-# === 4. DÉPENDANCES PYTHON ===
+# Exécution dans l'ordre
+executer_sql "$SQL_TABLES"
+executer_sql "$SQL_INSERT"
+executer_sql "$SQL_FUNCTION"
+
+echo "✅ Tous les fichiers SQL traités."
+
+# === 6. DÉPENDANCES PYTHON ===
 echo "🐍 Installation des dépendances Python..."
 
 # Vérifier que le venv existe
@@ -103,10 +125,9 @@ else
     echo "✅ Paquets de base installés."
 fi
 
-# === 5. LANCEMENT DU SCRIPT DE TEST ===
+# === 7. LANCEMENT DU SCRIPT DE TEST ===
 echo "🚀 Lancement du script de capture..."
 
-# La commande exacte : PYTHONPATH=. ./streetEye/bin/python3 tests/capture_test.py
 cd "$PROJECT_DIR" || exit
 PYTHONPATH=. "$VENV_PYTHON" "$TEST_SCRIPT"
 
