@@ -12,19 +12,19 @@ except ModuleNotFoundError:  # pragma: no cover - fallback for test environments
 
     psycopg2 = _MissingPsycopg2()
 
-
 load_dotenv()
+
 
 class DbConnexion:
     def __init__(
-        self,
-        connection=None,
-        *,
-        dbname=None,
-        user=None,
-        password=None,
-        host=None,
-        port=5432,
+            self,
+            connection=None,
+            *,
+            dbname=None,
+            user=None,
+            password=None,
+            host=None,
+            port=5432,
     ):
         if connection is not None:
             self.conn = connection

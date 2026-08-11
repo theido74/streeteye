@@ -2,7 +2,10 @@
 
 require_once('includes/dataAccess.php');
 session_start();
-
+if (!isset($_SESSION['mode'])) {
+    header('Location: demo_mode.php');
+    exit;
+}
 $error = '';  //
 
 
@@ -42,9 +45,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
 
-<!-- ============================================================
-     FORMULAIRE DE CONNEXION – STYLE EXISTANT UNIQUEMENT
-     ============================================================ -->
+<?php
+$clockStatus = (isset($_SESSION['mode']) && $_SESSION['mode'] === 'demo') ? 'mode demo' : 'SYSTÈME OPÉRATIONNEL';
+$clockDetails = ['🔒 CHIFFREMENT AES-256'];
+$clockShowDashboard = false;
+include 'includes/timebar.php';
+?>
+
+
 <div class="card" style="max-width:420px; margin:40px auto;">
     <!-- Titre avec badge -->
     <div class="card-title">
@@ -79,6 +87,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             🔑 Se connecter
         </button>
     </form>
+
+    <a href="demo_mode.php"
+       class="stat-item"
+       style="display:block; margin-top:12px; text-align:center; text-decoration:none; color:white; background:rgba(0,150,255,0.08);">
+        ← Retour au mode
+    </a>
 
 </div>
 </body>

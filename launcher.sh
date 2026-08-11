@@ -15,7 +15,7 @@ DB_USER="streeteyeuser"
 DB_PASS="streetEye"
 PROJECT_DIR="$(pwd)"                  # Racine du projet
 VENV_PYTHON="$PROJECT_DIR/streetEye/bin/python3"
-TEST_SCRIPT="tests/capture_test.py"
+TEST_SCRIPT="src/main.py"
 
 # === 2. FICHIERS SQL ===
 SQL_DIR="$PROJECT_DIR/sql"

@@ -1,8 +1,35 @@
 <?php
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+function loadEnv()
+{
+    static $loaded = false;
+
+    if ($loaded) {
+        return;
+    }
+
+    $envPath = __DIR__ . '/../../.env';
+    if (is_file($envPath)) {
+        Dotenv\Dotenv::createImmutable(__DIR__ . '/../../')->safeLoad();
+    }
+
+    $loaded = true;
+}
+
 function dbConnect()
 {
     try {
-        return new PDO('pgsql:host=localhost;dbname=streeteye;port=5432', 'streeteyeuser', 'streetEye', [
+        loadEnv();
+
+        $host = $_ENV['DB_HOST'];
+        $name = $_ENV['DB_NAME'];
+        $user = $_ENV['DB_USER'];
+        $password = $_ENV['DB_PASSWORD'];
+        $port = 5432;
+
+        return new PDO("pgsql:host={$host};dbname={$name};port={$port}", $user, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
         ]);
     } catch (Exception $e) {
@@ -44,7 +71,7 @@ function get3DetectionFlash()
                                 FROM detection
                                          JOIN vehicule ON detection.vehicule_id = vehicule.id
                                 WHERE vitesse > 20
-                                  AND flash = true
+                                  AND flash = true AND detection.deletedAt IS NULL
                                 ORDER BY dateheure DESC
                                 LIMIT 3;");
     $req->execute();
@@ -66,16 +93,16 @@ function getCheminPhoto($id)
 function getTxConfianceMoyen()
 {
     $db = dbConnect();
-    $req = $db->prepare("SELECT AVG(txdeconfiance) FROM detection ");
+    $req = $db->prepare("SELECT AVG(txdeconfiance) AS avg_tx FROM detection");
     $req->execute();
     $result = $req->fetch(PDO::FETCH_ASSOC);
-    return $result['avg'];
+    return $result['avg_tx'];
 }
 
 function getNbPassageDerniereHeure()
 {
     $db = dbConnect();
-    $req = $db->prepare("SELECT v.*, d.* FROM vehicule v JOIN detection d ON v.id = d.vehicule_id WHERE d.dateheure >= now() - interval '1 hour'");
+    $req = $db->prepare("SELECT v.*, d.* FROM vehicule v JOIN detection d ON v.id = d.vehicule_id WHERE d.dateheure >= NOW() - INTERVAL 1 HOUR");
     $req->execute();
     $result = $req->fetchAll(PDO::FETCH_ASSOC);
     return $result;
@@ -93,14 +120,49 @@ function getAllTypes($type)
     return $result;
 }
 
-function suppression_globale($vehicule_id, $photo_id)
+function suppression_globale($vehicule_id, $photo_id, $camera_id = 1)
 {
-
     $db = dbConnect();
-    $req = $db->prepare("SELECT suppression_globale(:camera_id,:vehicule_id,:photo_id);");
-    $req->execute(['camera_id' => 1,
-        'vehicule_id' => $vehicule_id,
-        'photo_id' => $photo_id,]);
+
+    try {
+        $db->beginTransaction();
+
+        $stmt = $db->prepare("
+            UPDATE detection 
+            SET deletedat = NOW() 
+            WHERE camera_id = :camera_id 
+              AND vehicule_id = :vehicule_id 
+              AND photo_id = :photo_id 
+              AND deletedat IS NULL
+        ");
+        $stmt->execute([
+            'camera_id' => $camera_id,
+            'vehicule_id' => $vehicule_id,
+            'photo_id' => $photo_id,
+        ]);
+
+        $stmt = $db->prepare("
+            UPDATE photo 
+            SET deletedat = NOW() 
+            WHERE id = :photo_id 
+              AND deletedat IS NULL
+        ");
+        $stmt->execute(['photo_id' => $photo_id]);
+
+        $stmt = $db->prepare("
+            UPDATE vehicule 
+            SET deletedat = NOW() 
+            WHERE id = :vehicule_id 
+              AND deletedat IS NULL
+        ");
+        $stmt->execute(['vehicule_id' => $vehicule_id]);
+
+        $db->commit();
+    } catch (Exception $e) {
+        $db->rollBack();
+
+        throw $e;
+    }
 }
 
 
@@ -111,11 +173,33 @@ function getDetectionFlash()
                                 FROM detection
                                          JOIN vehicule ON detection.vehicule_id = vehicule.id
                                 WHERE vitesse > 20
-                                  AND flash = true AND detection.deletedAt IS NULL AND vehicule.deletedAt IS NULL
+                                  AND flash = true
                                 ORDER BY dateheure DESC;");
     $req->execute();
     $result = $req->fetchAll(PDO::FETCH_ASSOC);
     return $result;
+}
+
+function restoreAlerte($vehicule_id, $photo_id)
+{
+    try {
+        $db = dbConnect();
+        $req = $db->prepare(
+            "UPDATE detection
+             SET deletedat = NULL
+             WHERE camera_id = 1
+               AND vehicule_id = :vehicule_id
+               AND photo_id = :photo_id"
+        );
+        $req->execute([
+            ':vehicule_id' => $vehicule_id,
+            ':photo_id' => $photo_id,
+        ]);
+        return $req->rowCount() > 0;
+    } catch (PDOException $e) {
+        error_log("Erreur restoreAlerte: " . $e->getMessage());
+        return false;
+    }
 }
 
 function getMdpByUsername($username)
@@ -132,5 +216,53 @@ function getMdpByUsername($username)
     }
 }
 
+function getDetectionByVehiculeAndPhoto($vehicule_id, $photo_id)
+{
+    try {
+        $db = dbConnect();
+        $req = $db->prepare("
+            SELECT *
+            FROM detection
+            WHERE camera_id = 1
+              AND vehicule_id = :vehicule_id
+              AND photo_id = :photo_id
+            LIMIT 1
+        ");
+        $req->execute([
+            'vehicule_id' => $vehicule_id,
+            'photo_id' => $photo_id,
+        ]);
+        return $req->fetch(PDO::FETCH_ASSOC) ?: null;
+    } catch (PDOException $e) {
+        error_log("Erreur getDetectionByVehiculeAndPhoto: " . $e->getMessage());
+        return null;
+    }
+}
 
-
+function updateAlertes($camera_id, $vehicule_id, $photo_id, $vitesse, $txDeConfiance, $deletedat)
+{
+    try {
+        $db = dbConnect();
+        $req = $db->prepare(
+            "UPDATE detection 
+            SET vitesse = :vitesse, 
+                txdeconfiance = :txconfiance,
+                deletedat = :deletedat
+            WHERE camera_id   = :camera_id
+              AND vehicule_id = :vehicule_id
+              AND photo_id    = :photo_id"
+        );
+        $req->execute([
+            ':vitesse' => $vitesse,
+            ':txconfiance' => $txDeConfiance,
+            ':deletedat' => $deletedat,
+            ':camera_id' => $camera_id,
+            ':vehicule_id' => $vehicule_id,
+            ':photo_id' => $photo_id
+        ]);
+        return $req->rowCount() > 0;
+    } catch (PDOException $e) {
+        error_log("Erreur updateAlerte: " . $e->getMessage());
+        return false;
+    }
+}

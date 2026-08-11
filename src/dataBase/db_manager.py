@@ -103,7 +103,7 @@ class DBManager:
                     SET flash = True
                     WHERE id = %s
                     """,
-                    (id_vehicule,)  # note la virgule pour un tuple
+                    (id_vehicule,)
                 )
                 if self.cursor.rowcount == 0:
                     print("Aucun véhicule trouvé avec cet ID")
