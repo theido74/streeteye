@@ -67,12 +67,12 @@ function getCountVehiculeFlash()
 function get3DetectionFlash()
 {
     $db = dbConnect();
-    $req = $db->prepare("SELECT *
+    $req = $db->prepare("SELECT detection.*, detection.dateheure AS dateheure, detection.deletedAt AS deletedat, vehicule.*
                                 FROM detection
                                          JOIN vehicule ON detection.vehicule_id = vehicule.id
                                 WHERE vitesse > 20
                                   AND flash = true AND detection.deletedAt IS NULL
-                                ORDER BY dateheure DESC
+                                ORDER BY detection.dateheure DESC
                                 LIMIT 3;");
     $req->execute();
     $result = $req->fetchAll(PDO::FETCH_ASSOC);
@@ -102,10 +102,12 @@ function getTxConfianceMoyen()
 function getNbPassageDerniereHeure()
 {
     $db = dbConnect();
-    $req = $db->prepare("SELECT v.*, d.* FROM vehicule v JOIN detection d ON v.id = d.vehicule_id WHERE d.dateheure >= NOW() - INTERVAL 1 HOUR");
+    $req = $db->prepare("SELECT COUNT(*) AS total
+                         FROM detection d
+                         WHERE d.dateheure >= NOW() - INTERVAL '1 hour'");
     $req->execute();
-    $result = $req->fetchAll(PDO::FETCH_ASSOC);
-    return $result;
+    $result = $req->fetch(PDO::FETCH_ASSOC);
+    return (int)($result['total'] ?? 0);
 
 }
 
@@ -169,12 +171,12 @@ function suppression_globale($vehicule_id, $photo_id, $camera_id = 1)
 function getDetectionFlash()
 {
     $db = dbConnect();
-    $req = $db->prepare("SELECT *
+    $req = $db->prepare("SELECT detection.*, detection.dateheure AS dateheure, detection.deletedAt AS deletedat, vehicule.*
                                 FROM detection
                                          JOIN vehicule ON detection.vehicule_id = vehicule.id
                                 WHERE vitesse > 20
                                   AND flash = true
-                                ORDER BY dateheure DESC;");
+                                ORDER BY detection.dateheure DESC;");
     $req->execute();
     $result = $req->fetchAll(PDO::FETCH_ASSOC);
     return $result;
@@ -221,7 +223,7 @@ function getDetectionByVehiculeAndPhoto($vehicule_id, $photo_id)
     try {
         $db = dbConnect();
         $req = $db->prepare("
-            SELECT *
+            SELECT detection.*, detection.dateheure AS dateheure, detection.deletedAt AS deletedat
             FROM detection
             WHERE camera_id = 1
               AND vehicule_id = :vehicule_id

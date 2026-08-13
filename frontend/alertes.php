@@ -26,7 +26,7 @@ require_once('includes/traitement.php');
             <span class="icon">🚨</span> DETECTIONS
             <?php $alertes = getDetectionFlash(); ?>
             <span class="badge" id="alertBadge"><?= count(array_filter($alertes, function ($alerte) {
-                    return $alerte['deletedat'] === null;
+                    return ($alerte['deletedat'] ?? null) === null;
                 })) ?></span>
         </div>
         <div class="card-title" style="border-bottom:none; padding-bottom:0; margin:18px 0 12px;">
@@ -34,13 +34,14 @@ require_once('includes/traitement.php');
         </div>
         <div class="alert-list" id="alertList">
             <?php $actives = array_filter($alertes, function ($alerte) {
-                return $alerte['deletedat'] === null;
+                return ($alerte['deletedat'] ?? null) === null;
             }); ?>
             <?php if (sizeof($actives) > 0): ?>
                 <?php foreach ($actives as $alerte): ?>
+                    <?php $dateHeure = $alerte['dateheure'] ?? $alerte['dateHeure'] ?? ''; ?>
                     <div class="alert-item">
                         <span class="time">vehicule id <?= htmlspecialchars($alerte['vehicule_id']) ?></span>
-                        <span class="time">Date <?= htmlspecialchars($alerte['dateheure']) ?></span>
+                        <span class="time">Date <?= htmlspecialchars($dateHeure) ?></span>
                         <span class="msg">Vitesse <?= htmlspecialchars($alerte['vitesse']) ?></span>
                         <a href="includes/traitement.php?vehicule_id=<?= $alerte['vehicule_id'] ?>&photo_id=<?= $alerte['photo_id'] ?>"
                            class="alert-item"
@@ -62,13 +63,14 @@ require_once('includes/traitement.php');
         </div>
         <div class="alert-list">
             <?php $supprimees = array_filter($alertes, function ($alerte) {
-                return $alerte['deletedat'] !== null;
+                return ($alerte['deletedat'] ?? null) !== null;
             }); ?>
             <?php if (sizeof($supprimees) > 0): ?>
                 <?php foreach ($supprimees as $alerte): ?>
+                    <?php $dateHeure = $alerte['dateheure'] ?? $alerte['dateHeure'] ?? ''; ?>
                     <div class="alert-item">
                         <span class="time">vehicule id <?= htmlspecialchars($alerte['vehicule_id']) ?></span>
-                        <span class="time">Date <?= htmlspecialchars($alerte['dateheure']) ?></span>
+                        <span class="time">Date <?= htmlspecialchars($dateHeure) ?></span>
                         <span class="msg">Vitesse <?= htmlspecialchars($alerte['vitesse']) ?></span>
                         <a href="includes/traitement.php?restore=1&vehicule_id=<?= $alerte['vehicule_id'] ?>&photo_id=<?= $alerte['photo_id'] ?>"
                            class="alert-item"

@@ -31,4 +31,4 @@ if (!isset($clockShowDashboard)) {
     </div>
     <div class="timestamp" data-clock="utc2">--:--:-- UTC+2</div>
 </div>
-<script src="clock.js" defer></script>
+<script src="includes/clock.js" defer></script>

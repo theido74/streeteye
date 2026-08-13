@@ -74,7 +74,7 @@ include 'includes/timebar.php';
                     🔄 Date et Heure
                 </label>
                 <input type="text" id="dateheure" name="dateheure"
-                       value="<?= $detection['dateheure'] ?>"
+                       value="<?= $detection['dateheure'] ?? $detection['dateHeure'] ?? '' ?>"
                        readonly
                        style="width:100%; background:transparent; border:none; color:#b0e0ff; font-family:inherit; font-size:1rem; outline:none; opacity:0.7; cursor:not-allowed;">
             </div>

@@ -108,9 +108,10 @@ $username = $_SESSION['username'];
                         foreach ($alertes as $alerte):
                             $id = $alerte['vehicule_id'];
                             $chemin = getCheminPhoto($id);
+                            $dateHeure = $alerte['dateheure'] ?? $alerte['dateHeure'] ?? '';
                             ?>
                             <div class="alert-item">
-                                <span class="time">Date <?= htmlspecialchars($alerte['dateheure']) ?></span>
+                                <span class="time">Date <?= htmlspecialchars($dateHeure) ?></span>
 
                                 <span class="msg">Vitesse <?= htmlspecialchars($alerte['vitesse']) ?></span>
                                 <span class="severity high"
@@ -132,7 +133,7 @@ $username = $_SESSION['username'];
             </div>
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; text-align: center;">
                 <div class="stat-item" style="background: rgba(0,150,255,0.03);">
-                    <div class="stat-value" style="font-size:1.6rem;"><?= sizeof(getNbPassageDerniereHeure()) ?> </div>
+                    <div class="stat-value" style="font-size:1.6rem;"><?= getNbPassageDerniereHeure() ?> </div>
                     <div class="stat-label">Passage la dernière heure</div>
                 </div>
                 <?php
